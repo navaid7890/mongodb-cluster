@@ -1,0 +1,60 @@
+version: '3.7'
+networks:
+  mongo-net:
+    name: mongo-net
+services:
+  mongo-2:
+    hostname: ckh-mongo-cluster.xelerate.solutions:30002
+    container_name: mongo-2
+    image: mongo
+    entrypoint: [ "/usr/bin/mongod", "--keyFile", "/data/mongo.key", "--replSet", "xelerate", "--journal", "--bind_ip_all" ]
+    ports:
+    - "30002:27017"
+    restart: always
+#    environment:
+#      - MONGO_INITDB_ROOT_USERNAME=admin
+#      - MONGO_INITDB_ROOT_PASSWORD=Admin&*90
+    networks:
+      - mongo-net
+    volumes:
+    - "./mongo.key:/data/mongo.key"
+    - ./mongo-2-data:/data/db/
+
+  mongo-1:
+    hostname: ckh-mongo-cluster.xelerate.solutions:30001
+    container_name: mongo-1
+    image: mongo
+    entrypoint: [ "/usr/bin/mongod", "--keyFile", "/data/mongo.key", "--replSet", "xelerate", "--journal", "--bind_ip_all" ]
+    ports:
+    - "30001:27017"
+    restart: always
+ #   environment:
+ #     - MONGO_INITDB_ROOT_USERNAME=admin
+ #     - MONGO_INITDB_ROOT_PASSWORD=Admin&*90
+    networks:
+      - mongo-net
+    volumes:
+    - "./mongo.key:/data/mongo.key"
+    - ./mongo-1-data:/data/db/
+
+  mongo-0:
+    hostname: ckh-mongo-cluster.xelerate.solutions:30000
+    container_name: mongo-0
+    image: mongo
+    command: bash -c "/usr/bin/mongod --keyFile /data/mongo.key --replSet xelerate --journal --bind_ip_all"
+#    environment:
+#      - MONGO_INITDB_ROOT_USERNAME=admin
+#      - MONGO_INITDB_ROOT_PASSWORD=Admin&*90
+    ports:
+    - "30000:27017"
+    # links:
+    # - mongo-1:mongo-1
+    # - mongo-2:mongo-2
+    restart: always
+    networks:
+      - mongo-net
+    volumes:
+    - ./mongo-0-data:/data/db
+    - "./setup.sh:/scripts/setup.sh"
+    - ./mongod.conf:/etc/mongod.conf
+    - "./mongo.key:/data/mongo.key"
